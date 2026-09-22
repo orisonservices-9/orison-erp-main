@@ -28,9 +28,9 @@ const StudentProfile = () => {
   return (
     <Layout>
       <div className="text-[13px] mb-4">
-        <span className="text-[#C4141B] cursor-pointer hover:underline" onClick={() => navigate('/students/view')}>View Students</span>
+        <span className="text-[#4F46E5] cursor-pointer hover:underline" onClick={() => navigate('/students/view')}>View Students</span>
         <span className="text-[#c0c0c0] mx-2">&gt;</span>
-        <span className="text-[#C4141B] cursor-pointer">Student Profile</span>
+        <span className="text-[#4F46E5] cursor-pointer">Student Profile</span>
         <span className="text-[#c0c0c0] mx-2">&gt;</span>
         <span className="text-[#888]">{breadcrumbMap[tab]}</span>
       </div>
@@ -41,7 +41,7 @@ const StudentProfile = () => {
             <button key={t} onClick={() => setTab(t)}
               className={`relative pb-3 text-[14px] transition-colors ${tab === t ? 'text-[#1a1a1a] font-semibold' : 'text-[#9a9a9a] hover:text-[#555]'}`}>
               {t}
-              {tab === t && <span className="absolute left-0 -bottom-px h-0.5 w-full bg-[#C4141B] rounded-full" />}
+              {tab === t && <span className="absolute left-0 -bottom-px h-0.5 w-full bg-[#4F46E5] rounded-full" />}
             </button>
           ))}
         </div>

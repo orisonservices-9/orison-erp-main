@@ -3,13 +3,13 @@ import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, UserCog, Briefcase,
   Wallet, FileText, ClipboardList, BookOpen, CalendarDays, Boxes, Receipt,
   Bell, Bus, MessageSquare, UserCheck, HelpCircle, BadgeDollarSign,
-  Fingerprint, Building2, BrainCircuit, Settings, Gauge
+  Fingerprint, Building2, Settings, Gauge, TicketCheck
 } from 'lucide-react';
 
 // Sidebar navigation config
 export const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { key: 'management', label: 'Management Action Center', icon: Gauge, path: '/management/action-center' },
+  { key: 'management', label: 'School Operations Center', icon: Gauge, path: '/management/action-center' },
   {
     key: 'student', label: 'Student Management', icon: Users,
     children: [
@@ -58,6 +58,7 @@ export const NAV_ITEMS = [
       { label: 'Collect Fee', path: '/fee/collect' },
       { label: 'View Collections', path: '/fee/collections' },
       { label: 'Receipts', path: '/fee/receipts' },
+      { label: 'Razorpay Verification', path: '/fee/payment-verification' },
     ],
   },
   { key: 'collections', label: 'Collection Intelligence', icon: Receipt, path: '/collections' },
@@ -76,7 +77,14 @@ export const NAV_ITEMS = [
       { label: 'Report Card', path: '/marks/report-card' },
     ],
   },
-  { key: 'homework', label: 'Homework Management', icon: BookOpen, path: '/homework' },
+  {
+    key: 'homework', label: 'Homework Management', icon: BookOpen,
+    children: [
+      { label: 'Add Homework', path: '/homework/add' },
+      { label: 'Homework Reports', path: '/homework/reports' },
+    ],
+  },
+  { key: 'hall_tickets', label: 'Hall Tickets', icon: TicketCheck, children: [{ label: 'Create Hall Ticket', path: '/hall-tickets/create' }, { label: 'View Hall Tickets', path: '/hall-tickets/view' }] },
   {
     key: 'leave', label: 'Leave Management', icon: CalendarDays,
     children: [
@@ -113,15 +121,40 @@ export const NAV_ITEMS = [
       { label: 'Expense Reports', path: '/expenses/reports' },
     ],
   },
-  { key: 'notifications', label: 'Notifications', icon: Bell, path: '/notifications' },
-  { key: 'transport', label: 'Transport', icon: Bus, path: '/transport' },
+  {
+    key: 'notifications', label: 'Notifications', icon: Bell,
+    children: [
+      { label: 'Notification Dashboard', path: '/notifications' },
+      { label: 'Send Notification', path: '/notifications/send' },
+    ],
+  },
+  {
+    key: 'transport', label: 'Transport Management', icon: Bus,
+    children: [
+      { label: 'Transport Overview', path: '/transport' },
+      { label: 'Routes & Stops', path: '/transport/routes' },
+    ],
+  },
   { key: 'communications', label: 'Communications', icon: MessageSquare, path: '/communications' },
-  { key: 'visitor', label: 'Visitor Management', icon: UserCheck, path: '/visitor' },
+  {
+    key: 'visitor', label: 'Visitor Management', icon: UserCheck,
+    children: [
+      { label: 'Visitor Overview', path: '/visitor' },
+      { label: 'Register Visitor', path: '/visitor/register' },
+      { label: 'Visitor Log', path: '/visitor/log' },
+    ],
+  },
   { key: 'question', label: 'Question Bank', icon: HelpCircle, path: '/question-bank' },
   { key: 'hr', label: 'HR & Payroll', icon: BadgeDollarSign, path: '/hr-payroll' },
   { key: 'biometric', label: 'Biometric Management', icon: Fingerprint, path: '/biometric' },
-  { key: 'multibranch', label: 'Multi Branch Management', icon: Building2, path: '/multi-branch' },
-  { key: 'ai', label: 'AI Analytics', icon: BrainCircuit, path: '/ai-analytics' },
+  {
+    key: 'multibranch', label: 'Multi Branch Management', icon: Building2,
+    children: [
+      { label: 'Network Overview', path: '/multi-branch/overview' },
+      { label: 'Branch Directory', path: '/multi-branch/directory' },
+      { label: 'Consolidated Reports', path: '/multi-branch/reports' },
+    ],
+  },
   { key: 'settings', label: 'Settings', icon: Settings, path: '/settings' },
 ];
 

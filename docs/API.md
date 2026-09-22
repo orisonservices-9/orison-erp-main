@@ -124,10 +124,46 @@ Returns `{ students: [...], teachers: [...], classes: [...] }`.
 
 ---
 
+## Parent app API
+
+Parent routes use a separate JWT with `role: parent`. Every student route verifies
+that the requested student belongs to the signed-in parent account.
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| POST | `/api/parent/auth/request-otp` | Start login for a registered parent mobile |
+| POST | `/api/parent/auth/verify-otp` | Verify OTP and return the parent JWT |
+| GET / PUT | `/api/parent/me` | Parent profile and approved contact preferences |
+| GET | `/api/parent/students` | Linked children only |
+| GET | `/api/parent/students/{id}/dashboard` | Home summary |
+| GET | `/api/parent/students/{id}/attendance` | Month-wise attendance |
+| GET | `/api/parent/students/{id}/results` | Exams, marks and comparison data |
+| GET / PUT | `/api/parent/students/{id}/homework[/{homework_id}/status]` | Assignments and done/pending state |
+| GET | `/api/parent/students/{id}/timetable` | Date-aware timetable |
+| GET | `/api/parent/students/{id}/fees` | Academic-year invoices and receipts |
+| POST | `/api/parent/fees/{fee_id}/payment-proof` | Submit UPI proof for finance review |
+| POST | `/api/parent/students/{id}/leave` | Submit leave and optional attachment metadata |
+| GET | `/api/parent/students/{id}/hall-tickets` | Eligibility, due warning and schedules |
+| GET | `/api/parent/students/{id}/transport` | Assigned route and current trip/ETA |
+| GET / PUT | `/api/parent/students/{id}/notices[/{notice_id}/read]` | Targeted notices and read state |
+| POST | `/api/parent/students/{id}/help-requests` | Callback or Orison app-support ticket |
+| POST | `/api/parent/uploads/{category}` | Payment, leave or help attachment; 12 MB max |
+
+`PARENT_OTP_DEBUG=true` returns the OTP in development. Production must leave it
+disabled and deliver OTPs through the configured SMS provider.
+
+## Parent App Control Center
+
+Staff routes live under `/api/parent-center/*`. Finance roles review payment proofs;
+academic leadership handles support, notices, hall tickets and homework; transport
+operations are limited to Admin, Principal and Director. Approval uses the normal fee
+transaction and receipt flow before a parent notification is queued.
+
+---
+
 ## Role-based access
 
-Menu keys per role are defined in `server.py` → `ROLE_CONFIG`. The **frontend**
-additionally guards routes: visiting a route outside the current role's menu renders
-an "Access Denied" page. The **backend** endpoints themselves are currently not
-per-role restricted (any authenticated role may call any data endpoint) — see
-`KNOWN_ISSUES.md` if you need endpoint-level RBAC.
+Menu keys per role are defined in `server.py` → `ROLE_CONFIG`. The **frontend** guards
+routes and Parent App Control Center endpoints also enforce staff roles on the backend.
+Older general ERP endpoints still need a broader RBAC pass before an internet-facing
+production launch.

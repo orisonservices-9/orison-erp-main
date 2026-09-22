@@ -27,7 +27,7 @@ const AttendanceTab = ({ detail }) => {
         <div className="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <h3 className="font-poppins text-[16px] font-bold text-[#1a1a1a]">{att.month}</h3>
-            <div className="flex items-center gap-4"><Legend color="bg-green-400" label="Present" /><Legend color="bg-red-400" label="Absent" /><Legend color="bg-yellow-400" label="Late" /></div>
+            <div className="flex items-center gap-4"><Legend color="bg-green-400" label="Present" /><Legend color="bg-indigo-400" label="Absent" /><Legend color="bg-yellow-400" label="Late" /></div>
           </div>
           <div className="grid grid-cols-7 gap-2 mb-2">{DOW.map((d) => <div key={d} className="text-center text-[11px] text-[#a0a0a0] font-medium">{d}</div>)}</div>
           <div className="grid grid-cols-7 gap-2">
@@ -57,7 +57,7 @@ const AttendanceTab = ({ detail }) => {
             {att.logs.map((l, i) => (
               <tr key={i} className="border-b border-gray-50 last:border-0">
                 <td className="py-3 text-[13px] text-[#444]">{l.date}</td>
-                <td className="py-3 text-center"><span className={`text-[12px] font-medium ${l.status === 'Present' ? 'text-green-600' : 'text-red-500'}`}>{l.status}</span></td>
+                <td className="py-3 text-center"><span className={`text-[12px] font-medium ${l.status === 'Present' ? 'text-green-600' : 'text-indigo-500'}`}>{l.status}</span></td>
                 <td className="py-3 text-center text-[13px] text-[#666]">{l.in}</td>
                 <td className="py-3 text-center text-[13px] text-[#666]">{l.out}</td>
               </tr>

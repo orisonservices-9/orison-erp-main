@@ -21,23 +21,26 @@ import { AdmissionsCRM, CollectionIntelligence } from './pages/modules/BusinessI
 import ManagementActionCenter from './pages/modules/ManagementActionCenter';
 import { AddStaff, ViewStaff } from './pages/modules/StaffDirectory';
 import { AddTeacher, ViewTeachers, AssignTeachers, ViewAllocations } from './pages/modules/TeacherManagement';
-import { CollectFee, CreateFees, FeeReceiptsArchive, ViewCollections } from './pages/modules/FeeMgmt';
+import { CollectFee, CreateFees, FeeReceiptsArchive, ViewCollections, RazorpayVerification } from './pages/modules/FeeMgmt';
 import { ViewExam, Results, ReportCard } from './pages/modules/ExamsMarks';
 import { HomeworkManagement, TimetableManagement } from './pages/modules/Operations1';
 import { InventoryManagement, ExpensesManagement } from './pages/modules/Operations2';
 import { Notifications, Communications } from './pages/modules/Comms';
-import { Transport, VisitorManagement } from './pages/modules/Facilities';
+import VisitorManagement, { PublicVisitorPass } from './pages/modules/VisitorManagement';
+import Transport from './pages/modules/TransportManagement';
 import { QuestionBank, LeaveReports } from './pages/modules/Academics2';
-import { HRPayroll, BiometricManagement } from './pages/modules/HR';
-import { MultiBranch, AIAnalytics, SettingsPage } from './pages/modules/System';
+import { BiometricManagement } from './pages/modules/HR';
+import { HRPayroll } from './pages/modules/HRPayrollLive';
+import { MultiBranch, SettingsPage } from './pages/modules/System';
+import HallTicketsManagement from './pages/HallTicketsManagement';
 
 const AccessDenied = () => (
   <Layout>
     <div data-testid="access-denied" className="flex flex-col items-center justify-center py-32 text-center">
-      <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mb-5"><ShieldOff className="w-8 h-8 text-[#C4141B]" /></div>
+      <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center mb-5"><ShieldOff className="w-8 h-8 text-[#4F46E5]" /></div>
       <h2 className="font-poppins text-[22px] font-bold text-[#1a1a1a]">Access Denied</h2>
       <p className="text-[13px] text-[#8a8a8a] mt-2 max-w-sm">You don't have permission to view this page with your current role.</p>
-      <a href="/dashboard" data-testid="access-denied-back-btn" className="mt-5 inline-flex items-center gap-2 bg-[#C4141B] hover:bg-[#a91116] text-white text-[13px] font-medium rounded-lg px-5 py-2.5">Back to Dashboard</a>
+      <a href="/dashboard" data-testid="access-denied-back-btn" className="mt-5 inline-flex items-center gap-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-[13px] font-medium rounded-lg px-5 py-2.5">Back to Dashboard</a>
     </div>
   </Layout>
 );
@@ -56,6 +59,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/visitor-pass/:token" element={<PublicVisitorPass />} />
       <Route path="/dashboard" element={P(<Dashboard />, 'dashboard')} />
       <Route path="/management/action-center" element={P(<ManagementActionCenter />, 'management')} />
 
@@ -102,8 +106,14 @@ function AppRoutes() {
       <Route path="/fee/collect" element={P(<CollectFee />, 'fee')} />
       <Route path="/fee/collections" element={P(<ViewCollections />, 'fee')} />
       <Route path="/fee/receipts" element={P(<FeeReceiptsArchive />, 'fee')} />
+      <Route path="/fee/payment-verification" element={P(<RazorpayVerification />, 'fee')} />
       <Route path="/collections" element={P(<CollectionIntelligence />, 'collections')} />
-      <Route path="/homework" element={P(<HomeworkManagement />, 'homework')} />
+      <Route path="/homework" element={P(<Navigate to="/homework/add" replace />, 'homework')} />
+      <Route path="/homework/add" element={P(<HomeworkManagement mode="add" />, 'homework')} />
+      <Route path="/homework/reports" element={P(<HomeworkManagement mode="reports" />, 'homework')} />
+      <Route path="/hall-tickets" element={P(<Navigate to="/hall-tickets/create" replace />, 'hall_tickets')} />
+      <Route path="/hall-tickets/create" element={P(<HallTicketsManagement mode="create" />, 'hall_tickets')} />
+      <Route path="/hall-tickets/view" element={P(<HallTicketsManagement mode="view" />, 'hall_tickets')} />
       <Route path="/timetable" element={P(<Navigate to="/timetable/create" replace />, 'timetable')} />
       <Route path="/timetable/create" element={P(<TimetableManagement mode="create" />, 'timetable')} />
       <Route path="/timetable/view" element={P(<TimetableManagement mode="view" />, 'timetable')} />
@@ -118,15 +128,26 @@ function AppRoutes() {
       <Route path="/expenses/record" element={P(<ExpensesManagement mode="record" />, 'expenses')} />
       <Route path="/expenses/register" element={P(<ExpensesManagement mode="register" />, 'expenses')} />
       <Route path="/expenses/reports" element={P(<ExpensesManagement mode="reports" />, 'expenses')} />
-      <Route path="/notifications" element={P(<Notifications />, 'notifications')} />
-      <Route path="/transport" element={P(<Transport />, 'transport')} />
+      <Route path="/notifications" element={P(<Notifications mode="dashboard" />, 'notifications')} />
+      <Route path="/notifications/send" element={P(<Notifications mode="send" />, 'notifications')} />
+      <Route path="/notifications/rules" element={<Navigate to="/notifications" replace />} />
+      <Route path="/notifications/history" element={<Navigate to="/notifications" replace />} />
+      <Route path="/transport" element={P(<Transport mode="overview" />, 'transport')} />
+      <Route path="/transport/routes" element={P(<Transport mode="routes" />, 'transport')} />
+      <Route path="/transport/assignments" element={<Navigate to="/students/view" replace />} />
+      <Route path="/transport/live" element={<Navigate to="/transport" replace />} />
+      <Route path="/transport/safety" element={<Navigate to="/transport" replace />} />
       <Route path="/communications" element={P(<Communications />, 'communications')} />
-      <Route path="/visitor" element={P(<VisitorManagement />, 'visitor')} />
+      <Route path="/visitor" element={P(<VisitorManagement mode="overview" />, 'visitor')} />
+      <Route path="/visitor/register" element={P(<VisitorManagement mode="register" />, 'visitor')} />
+      <Route path="/visitor/log" element={P(<VisitorManagement mode="log" />, 'visitor')} />
       <Route path="/question-bank" element={P(<QuestionBank />, 'question')} />
       <Route path="/hr-payroll" element={P(<HRPayroll />, 'hr')} />
       <Route path="/biometric" element={P(<BiometricManagement />, 'biometric')} />
-      <Route path="/multi-branch" element={P(<MultiBranch />, 'multibranch')} />
-      <Route path="/ai-analytics" element={P(<AIAnalytics />, 'ai')} />
+      <Route path="/multi-branch" element={<Navigate to="/multi-branch/overview" replace />} />
+      <Route path="/multi-branch/overview" element={P(<MultiBranch mode="overview" />, 'multibranch')} />
+      <Route path="/multi-branch/directory" element={P(<MultiBranch mode="directory" />, 'multibranch')} />
+      <Route path="/multi-branch/reports" element={P(<MultiBranch mode="reports" />, 'multibranch')} />
       <Route path="/settings" element={P(<SettingsPage />, 'settings')} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

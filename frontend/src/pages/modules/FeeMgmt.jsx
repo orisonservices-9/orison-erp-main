@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import Layout from '../../components/Layout';
 import { Badge, Btn, Card, PageTitle, StatCards, Table } from '../../components/Shared';
-import { CheckCircle2, CreditCard, Download, Edit3, FileText, IndianRupee, Landmark, LockKeyhole, Printer, Receipt, Search, Wallet, X } from 'lucide-react';
+import { CheckCircle2, CreditCard, Download, Edit3, FileText, IndianRupee, Landmark, LockKeyhole, Printer, Receipt, RefreshCw, Search, ShieldCheck, Wallet, X } from 'lucide-react';
 import api from '../../api';
 import { downloadCSV, printPage } from '../../utils';
 import { useAuth } from '../../context/AuthContext';
 
 const money = (value) => `₹${Number(value || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const today = () => new Date().toISOString().slice(0, 10);
-const input = 'mt-1 h-10 w-full rounded-lg border border-gray-200 bg-[#f7f8f9] px-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-red-100';
+const input = 'mt-1 h-10 w-full rounded-lg border border-gray-200 bg-[#f7f8f9] px-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-indigo-100';
 const feeTypes = ['Tuition', 'Admission', 'Transport', 'Exam', 'Library', 'Laboratory', 'Activity', 'Other'];
 const colour = (status) => status === 'Paid' ? 'green' : status === 'Partial' ? 'amber' : status === 'Overdue' ? 'red' : 'gray';
 
@@ -76,7 +76,7 @@ export const CreateFees = () => {
     <Layout>
       <PageTitle title="Create Fee" subtitle="First select the Class and Section, create the new fee, then check existing fees for the same academic group." />
 
-      {notice && <div className={`mb-5 rounded-xl border px-4 py-3 text-[13px] ${notice.includes('was created') ? 'border-green-100 bg-green-50 text-green-700' : 'border-red-100 bg-red-50 text-red-700'}`}>{notice}</div>}
+      {notice && <div className={`mb-5 rounded-xl border px-4 py-3 text-[13px] ${notice.includes('was created') ? 'border-green-100 bg-green-50 text-green-700' : 'border-indigo-100 bg-indigo-50 text-indigo-700'}`}>{notice}</div>}
 
       <Card className="mb-6" title="1. Select academic group" subtitle="Choose one Section, or leave Section on All Sections to apply the fee to every section in the selected Class.">
         <GroupFilters structure={structure} value={target} onChange={setTarget} allowAllSections />
@@ -137,7 +137,7 @@ const RecentPayments = ({ rows, groupSelected, query, onQueryChange }) => (
       <div className="relative">
         <Search size={16} className="absolute left-3 top-3 text-[#999]" />
         <input
-          className="h-10 w-64 rounded-lg border border-gray-200 pl-9 pr-3 text-[13px] outline-none focus:ring-2 focus:ring-red-100"
+          className="h-10 w-64 rounded-lg border border-gray-200 pl-9 pr-3 text-[13px] outline-none focus:ring-2 focus:ring-indigo-100"
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder="Search student or receipt…"
@@ -150,7 +150,7 @@ const RecentPayments = ({ rows, groupSelected, query, onQueryChange }) => (
       <Table columns={[{ label: 'Receipt No.' }, { label: 'Student' }, { label: 'Class' }, { label: 'Section' }, { label: 'Fee' }, { label: 'Amount Received' }, { label: 'Payment Mode' }, { label: 'Received On' }]}>
         {rows.map((payment) => (
           <tr key={payment.id} className="border-b border-gray-50">
-            <td className="px-6 py-4 text-[12px] font-semibold text-[#C4141B]">{payment.id}</td>
+            <td className="px-6 py-4 text-[12px] font-semibold text-[#4F46E5]">{payment.id}</td>
             <td className="py-4 text-[13px] font-semibold">
               {payment.student_name}
               <span className="block text-[11px] font-normal text-[#999]">{payment.admission_no || 'Admission number unavailable'}</span>
@@ -219,7 +219,7 @@ export const ViewCollections = () => {
       <StatCards items={[
         { label: 'Fee Expected', value: money(overview.total), icon: Wallet },
         { label: 'Collected', value: money(overview.collected), icon: IndianRupee, tint: 'bg-green-50 text-green-600' },
-        { label: 'Outstanding', value: money(overview.pending), icon: Receipt, tint: 'bg-red-50 text-[#C4141B]' },
+        { label: 'Outstanding', value: money(overview.pending), icon: Receipt, tint: 'bg-indigo-50 text-[#4F46E5]' },
         { label: 'Collection Efficiency', value: `${efficiency}%`, icon: FileText, tint: 'bg-amber-50 text-amber-600' },
       ]} />
 
@@ -336,7 +336,7 @@ export const CollectFee = () => {
                   <td className="py-3 text-[13px] font-semibold">{item.name}</td>
                   <td className="py-3 text-[12px] text-[#666]">{item.admission_no}</td>
                   <td className="py-3 text-[12px] text-[#666]">{item.class_name} — {item.section}</td>
-                  <td className="py-3 text-right"><button onClick={() => { setStudentId(item.id); setFeeId(''); setResult(null); }} className="text-[12px] font-semibold text-[#C4141B]">Open account</button></td>
+                  <td className="py-3 text-right"><button onClick={() => { setStudentId(item.id); setFeeId(''); setResult(null); }} className="text-[12px] font-semibold text-[#4F46E5]">Open account</button></td>
                 </tr>
               ))}
             </Table>
@@ -358,18 +358,18 @@ export const CollectFee = () => {
             </div>
             <div className="mt-5 rounded-xl bg-[#f1f5f8] p-4">
               <p className="text-[12px] text-[#777]">Collection Percentage</p>
-              <p className={`mt-1 text-[26px] font-bold ${percent >= 80 ? 'text-green-600' : percent >= 40 ? 'text-amber-600' : 'text-[#C4141B]'}`}>{percent}%</p>
+              <p className={`mt-1 text-[26px] font-bold ${percent >= 80 ? 'text-green-600' : percent >= 40 ? 'text-amber-600' : 'text-[#4F46E5]'}`}>{percent}%</p>
               <p className="text-[12px] text-[#777]">{percent >= 80 ? 'Healthy collection' : percent >= 40 ? 'Needs follow-up' : 'Critical outstanding balance'}</p>
             </div>
-            <div className="mt-4 text-[13px]"><p className="text-[#777]">Current Outstanding</p><b className="text-[#C4141B]">{money(pending.reduce((sum, item) => sum + item.due, 0))}</b></div>
-            {pastDue.length > 0 && <div className="mt-4 rounded-lg bg-red-50 p-3 text-[12px] text-red-700">{pastDue.length} pending fee(s) from a previous Academic Year: {money(pastDue.reduce((sum, item) => sum + item.due, 0))}</div>}
+            <div className="mt-4 text-[13px]"><p className="text-[#777]">Current Outstanding</p><b className="text-[#4F46E5]">{money(pending.reduce((sum, item) => sum + item.due, 0))}</b></div>
+            {pastDue.length > 0 && <div className="mt-4 rounded-lg bg-indigo-50 p-3 text-[12px] text-indigo-700">{pastDue.length} pending fee(s) from a previous Academic Year: {money(pastDue.reduce((sum, item) => sum + item.due, 0))}</div>}
           </Card>
 
           <Card className="xl:col-span-2" title="Select Fee and Open Receipt">
             <Table columns={[{ label: '' }, { label: 'Fee' }, { label: 'Academic Year' }, { label: 'Due Date' }, { label: 'Pending Amount' }, { label: 'Status' }]}>
               {pending.map((item) => (
                 <tr key={item.id} className="border-b border-gray-100">
-                  <td className="py-4"><input type="radio" name="fee" checked={feeId === item.id} onChange={() => setFeeId(item.id)} className="accent-[#C4141B]" /></td>
+                  <td className="py-4"><input type="radio" name="fee" checked={feeId === item.id} onChange={() => setFeeId(item.id)} className="accent-[#4F46E5]" /></td>
                   <td className="py-4 text-[13px] font-semibold">{item.fee_name || 'School Fee'}<span className="block text-[11px] font-normal text-[#999]">{item.category || 'General Fee'}</span></td>
                   <td className="py-4 text-[12px]">{item.academic_year || '—'}</td>
                   <td className="py-4 text-[12px]">{item.due_date || '—'}</td>
@@ -398,7 +398,7 @@ const ReceiptModal = ({ student, fee, amount, setAmount, discount, setDiscount, 
 
 const ReceiptView = ({ receipt, student, onClose }) => <div className="fixed inset-0 z-50 overflow-auto bg-black/50 p-4"><div className="mx-auto my-6 w-full max-w-3xl bg-white p-3 shadow-2xl"><div id="fee-receipt" className="border-2 border-black p-5 font-serif text-black"><SchoolHeader receiptNo={receipt.id} date={new Date(receipt.paid_at).toLocaleDateString('en-GB')} academicYear={receipt.academic_year} /><div className="grid grid-cols-2 border-b border-black py-3 text-[14px]"><p>Adm No: <b>{receipt.admission_no || student?.admission_no || '—'}</b></p><p>Name: <b>{receipt.student_name || student?.name}</b></p><p>FName: <b>{receipt.parent_name || student?.parent_name || student?.father_name || '—'}</b></p><p>Class: <b>{receipt.class_name || student?.class_name} — {receipt.section || student?.section}</b></p></div><table className="w-full border-collapse text-[14px]"><thead><tr className="border-b border-black"><th className="border-r border-black p-2 text-left">Sno</th><th className="border-r border-black p-2 text-left">Description</th><th className="border-r border-black p-2 text-left">Mode of Pay</th><th className="p-2 text-right">Amount</th></tr></thead><tbody><tr className="border-b border-black"><td className="border-r border-black p-2">1.</td><td className="border-r border-black p-2"><b>{receipt.fee_name}</b></td><td className="border-r border-black p-2">{receipt.method}</td><td className="p-2 text-right font-bold">{money(receipt.amount)}</td></tr></tbody></table><div className="border-b border-black py-3 text-[14px]"><p><b>NOTE:</b> Fee once paid will not be refunded.</p>{receipt.discount > 0 && <div className="mt-3 flex justify-between"><span>Approved Discount</span><b>{money(receipt.discount)}</b></div>}<div className="mt-3 flex justify-between border-t border-black pt-2 text-[16px] font-bold"><span>Total Received</span><span>{money(receipt.amount)}</span></div><div className="mt-2 flex justify-between"><span>Due</span><span>{money(receipt.balance_after)}</span></div><p className="mt-4 text-right font-bold">Authorised Signatory</p></div><p className="mt-3 font-sans text-[11px] text-[#555]">Parent receipt notification is queued by SMS, WhatsApp and app push.</p><div className="mt-5 flex justify-end gap-3 font-sans"><Btn variant="outline" icon={Printer} onClick={printPage}>Print Receipt</Btn><Btn onClick={onClose}>Done</Btn></div></div></div></div>;
 
-export const FeeReceipts = () => { const [rows, setRows] = useState([]); const [q, setQ] = useState(''); useEffect(() => { api.get('/fees/receipts').then(({ data }) => setRows(data)).catch(() => setRows([])); }, []); const shown = rows.filter((item) => `${item.id} ${item.student_name} ${item.admission_no}`.toLowerCase().includes(q.toLowerCase())); return <Layout><PageTitle title="Receipts" subtitle="All submitted fee receipts are available for download, printing and parent follow-up." actions={<Btn variant="outline" icon={Download} onClick={() => downloadCSV('fee-receipts.csv', ['Receipt', 'Student', 'Fee', 'Amount', 'Discount', 'Method', 'Date'], shown.map((item) => [item.id, item.student_name, item.fee_name, item.amount, item.discount, item.method, item.paid_at]))}>Export CSV</Btn>} /><Card title="Fee Receipts" action={<div className="relative"><Search size={16} className="absolute left-3 top-3 text-[#999]" /><input className="h-10 rounded-lg border border-gray-200 pl-9 pr-3 text-[13px]" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search receipt or student…" /></div>} pad="p-0"><div className="overflow-x-auto"><Table columns={[{ label: 'Receipt' }, { label: 'Student' }, { label: 'Fee' }, { label: 'Received' }, { label: 'Discount' }, { label: 'Payment Mode' }, { label: 'Date' }]}>{shown.map((item) => <tr key={item.id} className="border-b border-gray-50"><td className="px-6 py-3 text-[12px] font-semibold text-[#C4141B]">{item.id}</td><td className="py-3 text-[13px] font-semibold">{item.student_name}<span className="block text-[11px] font-normal text-[#999]">{item.admission_no || '—'}</span></td><td className="py-3 text-[13px]">{item.fee_name}</td><td className="py-3 text-[13px] font-semibold text-green-700">{money(item.amount)}</td><td className="py-3 text-[13px]">{money(item.discount)}</td><td className="py-3"><Badge color="blue">{item.method}</Badge></td><td className="py-3 pr-6 text-[12px]">{item.paid_at ? new Date(item.paid_at).toLocaleString() : '—'}</td></tr>)}</Table>{!shown.length && <p className="py-16 text-center text-[13px] text-[#999]">No receipts have been submitted yet.</p>}</div></Card></Layout>; };
+export const FeeReceipts = () => { const [rows, setRows] = useState([]); const [q, setQ] = useState(''); useEffect(() => { api.get('/fees/receipts').then(({ data }) => setRows(data)).catch(() => setRows([])); }, []); const shown = rows.filter((item) => `${item.id} ${item.student_name} ${item.admission_no}`.toLowerCase().includes(q.toLowerCase())); return <Layout><PageTitle title="Receipts" subtitle="All submitted fee receipts are available for download, printing and parent follow-up." actions={<Btn variant="outline" icon={Download} onClick={() => downloadCSV('fee-receipts.csv', ['Receipt', 'Student', 'Fee', 'Amount', 'Discount', 'Method', 'Date'], shown.map((item) => [item.id, item.student_name, item.fee_name, item.amount, item.discount, item.method, item.paid_at]))}>Export CSV</Btn>} /><Card title="Fee Receipts" action={<div className="relative"><Search size={16} className="absolute left-3 top-3 text-[#999]" /><input className="h-10 rounded-lg border border-gray-200 pl-9 pr-3 text-[13px]" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search receipt or student…" /></div>} pad="p-0"><div className="overflow-x-auto"><Table columns={[{ label: 'Receipt' }, { label: 'Student' }, { label: 'Fee' }, { label: 'Received' }, { label: 'Discount' }, { label: 'Payment Mode' }, { label: 'Date' }]}>{shown.map((item) => <tr key={item.id} className="border-b border-gray-50"><td className="px-6 py-3 text-[12px] font-semibold text-[#4F46E5]">{item.id}</td><td className="py-3 text-[13px] font-semibold">{item.student_name}<span className="block text-[11px] font-normal text-[#999]">{item.admission_no || '—'}</span></td><td className="py-3 text-[13px]">{item.fee_name}</td><td className="py-3 text-[13px] font-semibold text-green-700">{money(item.amount)}</td><td className="py-3 text-[13px]">{money(item.discount)}</td><td className="py-3"><Badge color="blue">{item.method}</Badge></td><td className="py-3 pr-6 text-[12px]">{item.paid_at ? new Date(item.paid_at).toLocaleString() : '—'}</td></tr>)}</Table>{!shown.length && <p className="py-16 text-center text-[13px] text-[#999]">No receipts have been submitted yet.</p>}</div></Card></Layout>; };
 
 export const FeeManagement = ViewCollections;
 
@@ -465,7 +465,7 @@ export const FeeReceiptsArchive = () => {
           <Table columns={[{ label: 'Receipt' }, { label: 'Student' }, { label: 'Class' }, { label: 'Section' }, { label: 'Fee' }, { label: 'Received' }, { label: 'Payment Mode' }, { label: 'Date' }, { label: 'Receipt Actions' }]}>
             {shown.map((item) => (
               <tr key={item.id} className="border-b border-gray-50">
-                <td className="px-6 py-3 text-[12px] font-semibold text-[#C4141B]">{item.id}</td>
+                <td className="px-6 py-3 text-[12px] font-semibold text-[#4F46E5]">{item.id}</td>
                 <td className="py-3 text-[13px] font-semibold">{item.student_name}<span className="block text-[11px] font-normal text-[#999]">{item.admission_no || '—'}</span></td>
                 <td className="py-3 text-[13px]">{item.class_name || '—'}</td>
                 <td className="py-3 text-[13px]">{item.section || '—'}</td>
@@ -473,7 +473,7 @@ export const FeeReceiptsArchive = () => {
                 <td className="py-3 text-[13px] font-semibold text-green-700">{money(item.amount)}</td>
                 <td className="py-3"><Badge color="blue">{item.method}</Badge></td>
                 <td className="py-3 text-[12px]">{item.paid_at ? new Date(item.paid_at).toLocaleString() : '—'}</td>
-                <td className="py-3 pr-6"><div className="flex gap-3"><button onClick={() => setOpen(item)} className="text-[12px] font-semibold text-[#C4141B]">View / Print</button><button onClick={() => downloadReceiptFile(item)} className="text-[12px] font-semibold text-[#555]">Download</button></div></td>
+                <td className="py-3 pr-6"><div className="flex gap-3"><button onClick={() => setOpen(item)} className="text-[12px] font-semibold text-[#4F46E5]">View / Print</button><button onClick={() => downloadReceiptFile(item)} className="text-[12px] font-semibold text-[#555]">Download</button></div></td>
               </tr>
             ))}
           </Table>
@@ -484,4 +484,37 @@ export const FeeReceiptsArchive = () => {
       {open && <ReceiptView receipt={open} student={{ name: open.student_name, admission_no: open.admission_no, class_name: open.class_name, section: open.section, parent_name: open.parent_name }} onClose={() => setOpen(null)} />}
     </Layout>
   );
+};
+
+export const RazorpayVerification = () => {
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setRows((await api.get('/payments/razorpay')).data || []); }
+    finally { setLoading(false); }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  const shown = rows.filter((row) => `${row.payment_id} ${row.order_id} ${row.student_name} ${row.fee_name}`.toLowerCase().includes(query.toLowerCase()));
+  const statusColour = (status) => status === 'Verified' ? 'green' : status === 'Failed' ? 'red' : status === 'Refunded' ? 'purple' : 'amber';
+  return <Layout>
+    <PageTitle title="Razorpay Payment Verification" subtitle="Read-only gateway verification trail. Razorpay signatures are checked automatically; staff do not approve or reject parent payments." actions={<Btn variant="outline" icon={RefreshCw} onClick={load}>Refresh</Btn>} />
+    <StatCards items={[
+      { label: 'Verified payments', value: rows.filter((row) => row.status === 'Verified').length, icon: ShieldCheck, tint: 'bg-emerald-50 text-emerald-700' },
+      { label: 'Pending confirmation', value: rows.filter((row) => row.status === 'Created').length, icon: CreditCard, tint: 'bg-amber-50 text-amber-700' },
+      { label: 'Failed verification', value: rows.filter((row) => row.status === 'Failed').length, icon: X, tint: 'bg-indigo-50 text-indigo-700' },
+      { label: 'Verified value', value: money(rows.filter((row) => row.status === 'Verified').reduce((sum, row) => sum + Number(row.amount || 0), 0)), icon: IndianRupee, tint: 'bg-blue-50 text-blue-700' },
+    ]} />
+    <Card title="Gateway transaction audit" subtitle="Razorpay order, payment and signature verification status with automatic ledger posting." action={<div className="relative"><Search size={16} className="absolute left-3 top-3 text-[#999]" /><input className="h-10 rounded-lg border border-gray-200 pl-9 pr-3 text-[13px]" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search payment or student…" /></div>} pad="p-0">
+      <div className="overflow-x-auto"><Table columns={[{label:'Student / Fee'},{label:'Razorpay Order'},{label:'Payment ID'},{label:'Amount'},{label:'Verification'},{label:'Updated'}]}>
+        {shown.map((row) => <tr key={row.id || row.order_id} className="border-b border-gray-50">
+          <td className="px-6 py-3 text-[13px] font-semibold">{row.student_name || '—'}<span className="block text-[11px] font-normal text-[#999]">{row.fee_name || row.fee_id}</span></td>
+          <td className="py-3 font-mono text-[11px]">{row.order_id || '—'}</td><td className="py-3 font-mono text-[11px]">{row.payment_id || 'Awaiting payment'}</td>
+          <td className="py-3 text-[13px] font-semibold">{money(row.amount)}</td><td className="py-3"><Badge color={statusColour(row.status)}>{row.status}</Badge>{row.failure_reason && <span className="mt-1 block max-w-[220px] text-[10px] text-indigo-600">{row.failure_reason}</span>}</td>
+          <td className="py-3 pr-6 text-[11px] text-[#777]">{row.updated_at ? new Date(row.updated_at).toLocaleString() : '—'}<span className="block text-[10px] text-[#aaa]">{row.updated_by || 'Razorpay webhook'}</span></td>
+        </tr>)}
+      </Table>{!loading && !shown.length && <p className="py-16 text-center text-[13px] text-[#999]">No Razorpay transactions found.</p>}{loading && <p className="py-16 text-center text-[13px] text-[#999]">Loading gateway transactions…</p>}</div>
+    </Card>
+  </Layout>;
 };

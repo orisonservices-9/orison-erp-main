@@ -19,7 +19,9 @@ Browser ──> Frontend (static React build, served by any static host / CDN)
 
 Set env vars from the `.env.example` templates (never commit real values):
 
-- Backend: `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `CORS_ORIGINS`
+- Backend: `MONGO_URL`, `DB_NAME`, `JWT_SECRET`, `ALLOWED_ORIGINS`
+- Parent services: `PARENT_OTP_DEBUG=false` in production plus your SMS, storage,
+  push and GPS provider configuration
 - Frontend (build-time): `REACT_APP_BACKEND_URL` — must be the public backend origin
   **without** a trailing `/api`. CRA inlines `REACT_APP_*` at build time, so rebuild the
   frontend whenever this value changes.
@@ -50,17 +52,18 @@ location /     { try_files $uri /index.html; }
 ## Production checklist / hardening
 
 - [ ] Set a strong, unique `JWT_SECRET` (do not use a dev default).
-- [ ] Restrict `CORS_ORIGINS` to your real frontend origin(s) — the app currently
-      allows `*` with credentials, which browsers ignore; tighten this.
+- [ ] Set `ALLOWED_ORIGINS` to comma-separated production admin-web origins. The
+      code defaults only to local development origins.
 - [ ] Add the MongoDB unique index on `admission_no` (see `docs/DATABASE.md`) to
       prevent duplicate students under concurrency.
 - [ ] Decide on demo seeding: a fresh DB auto-seeds demo rows on first boot. Disable
       `seed()` if you don't want demo data in production.
 - [ ] The current demo auth is **role-only (no password)**. Replace with real
       authentication before going live (see KNOWN_ISSUES.md).
-- [ ] Add per-endpoint role authorization on the backend if you need true RBAC
-      (today the backend authenticates the token but does not restrict data endpoints
-      by role — the restriction is enforced only in the frontend).
+- [ ] Parent App Control Center routes already enforce staff responsibility. Complete
+      the same endpoint-level RBAC pass for older general ERP routes.
+- [ ] Configure an SMS OTP provider, private attachment storage, push delivery and
+      GPS/map provider before enabling the Flutter live repository.
 - [ ] Serve over HTTPS; set secure headers.
 
 ## Notes on the managed (Emergent) environment

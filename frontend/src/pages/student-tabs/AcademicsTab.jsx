@@ -38,7 +38,7 @@ const AcademicsTab = ({ detail }) => {
               {grades.map((g, i) => (
                 <div key={i} className="flex-1 flex flex-col items-center gap-2">
                   <span className="text-[11px] font-semibold text-[#666]">{g.total}%</span>
-                  <div className="w-full rounded-t-md bg-[#C4141B]" style={{ height: `${(g.total / max) * 150}px` }} />
+                  <div className="w-full rounded-t-md bg-[#4F46E5]" style={{ height: `${(g.total / max) * 150}px` }} />
                   <span className="text-[10px] text-[#999] text-center leading-tight truncate w-full">{g.subject}</span>
                 </div>
               ))}
@@ -48,7 +48,7 @@ const AcademicsTab = ({ detail }) => {
         <div className="space-y-6 self-start">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h3 className="font-poppins text-[15px] font-bold text-[#1a1a1a] mb-4">GPA Summary</h3>
-            <div className="rounded-xl bg-[#fcf3ec] py-5 text-center mb-5"><p className="text-[36px] font-poppins font-extrabold text-[#C4141B]">{gpa.cgpa}</p><p className="text-[12px] text-[#a07a6a]">Cumulative GPA (CGPA)</p></div>
+            <div className="rounded-xl bg-[#fcf3ec] py-5 text-center mb-5"><p className="text-[36px] font-poppins font-extrabold text-[#4F46E5]">{gpa.cgpa}</p><p className="text-[12px] text-[#a07a6a]">Cumulative GPA (CGPA)</p></div>
             <div className="space-y-3 text-[13px]">
               {[['Overall Grade', gpa.grade], ['Total Credits Earned', gpa.credits], ['Academic Standing', gpa.standing]].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between pb-2 border-b border-gray-50 last:border-0"><span className="text-[#888]">{k}</span><span className="font-semibold text-[#333] text-right">{v}</span></div>

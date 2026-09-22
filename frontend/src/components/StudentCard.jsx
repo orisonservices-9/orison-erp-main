@@ -9,7 +9,7 @@ const StudentCard = ({ student }) => {
         <img src={s.avatar} alt={s.name} className="w-14 h-14 rounded-full object-cover" />
         <div>
           <h3 className="font-poppins text-[19px] font-bold text-[#1a1a1a]">{s.name}</h3>
-          <p className="text-[12px] font-semibold text-[#C4141B] mt-0.5">ID: {s.id}</p>
+          <p className="text-[12px] font-semibold text-[#4F46E5] mt-0.5">ID: {s.id}</p>
           <div className="flex items-center gap-10 mt-2">
             <div>
               <p className="text-[10px] uppercase tracking-wide text-[#a0a0a0]">Class</p>
