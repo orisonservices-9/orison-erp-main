@@ -54,11 +54,29 @@ status ∈ `Pending` / `Approved` / `Rejected`.
 `{ id, type, title, body, unread, created (ISO string) }`
 type ∈ `info` / `success` / `warning`.
 
+### Parent service collections
+
+| Collection | Responsibility |
+|------------|----------------|
+| `parent_accounts` | Parent identity, verified mobile, linked `student_ids`, preferences |
+| `parent_otp_sessions` | Hashed short-lived OTP attempts; plain OTPs are never stored |
+| `parent_notices` | Draft/published notices with all, class or student targeting |
+| `parent_notice_reads` | Per-parent and per-child read receipts |
+| `payment_proofs` | UPI proof, transaction ID, review state and generated receipt ID |
+| `help_requests` | School callback and Orison app-support tickets |
+| `hall_tickets` | Class/section schedules and fee eligibility rule |
+| `homework_completions` | Parent-reported done/pending status per homework and child |
+| `transport_routes` | Bus, driver, attendant, stops and student assignments |
+| `transport_trips` | Current journey, stop, ETA and optional coordinates |
+| `parent_notifications` | Outbound messages queued by parent workflow events |
+
 ---
 
 ## Indexes / Constraints
 
-None are declared programmatically. **Recommended for production:**
+Parent-service lookup indexes are declared at application startup. The older core ERP
+collections should additionally receive unique constraints after duplicate data has
+been audited:
 ```js
 db.students.createIndex({ admission_no: 1 }, { unique: true })
 db.students.createIndex({ id: 1 }, { unique: true })

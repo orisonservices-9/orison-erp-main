@@ -6,7 +6,7 @@ import api from '../../api';
 import { printPage } from '../../utils';
 
 const StatusBadge = ({ status }) => {
-  const map = { OVERDUE: 'bg-red-50 text-[#C4141B]', PENDING: 'bg-blue-50 text-blue-600' };
+  const map = { OVERDUE: 'bg-indigo-50 text-[#4F46E5]', PENDING: 'bg-blue-50 text-blue-600' };
   return <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${map[status]}`}>{status}</span>;
 };
 
@@ -50,7 +50,7 @@ const FeesTab = ({ detail }) => {
                 <div className="grid grid-cols-[24px_1fr_120px_120px] items-center text-[10px] uppercase tracking-wide text-[#a0a0a0] pb-2 border-b border-gray-100"><span></span><span>Fee Description</span><span>Due Date</span><span className="text-right">Amount / Status</span></div>
                 {pending.map((d, i) => (
                   <div key={i} className="grid grid-cols-[24px_1fr_120px_120px] items-center py-3 border-b border-gray-50 last:border-0">
-                    <span className={`w-4 h-4 rounded flex items-center justify-center ${d.checked ? 'bg-[#C4141B]' : 'border border-gray-300'}`}>{d.checked && <Check className="w-3 h-3 text-white" />}</span>
+                    <span className={`w-4 h-4 rounded flex items-center justify-center ${d.checked ? 'bg-[#4F46E5]' : 'border border-gray-300'}`}>{d.checked && <Check className="w-3 h-3 text-white" />}</span>
                     <div><p className="text-[13px] font-semibold text-[#333]">{d.desc}</p><p className="text-[11px] text-[#a0a0a0]">{d.sub}</p></div>
                     <span className="text-[12px] text-[#777]">{d.due}</span>
                     <div className="flex items-center justify-end gap-2"><span className="text-[13px] font-semibold text-[#333]">{d.amount}</span><StatusBadge status={d.status} /></div>
@@ -62,7 +62,7 @@ const FeesTab = ({ detail }) => {
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <div className="flex items-center justify-between mb-1">
               <h3 className="font-poppins text-[16px] font-bold text-[#1a1a1a]">Last Year Dues</h3>
-              <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#C4141B] bg-red-50 px-2 py-1 rounded"><AlertTriangle className="w-3.5 h-3.5" /> OVERDUE</span>
+              <span className="flex items-center gap-1.5 text-[11px] font-bold text-[#4F46E5] bg-indigo-50 px-2 py-1 rounded"><AlertTriangle className="w-3.5 h-3.5" /> OVERDUE</span>
             </div>
             <p className="text-[12px] text-[#a0a0a0] mb-3">Unpaid fees carried over from previous academic year</p>
             {LAST_YEAR_DUES.map((d, i) => (
@@ -80,20 +80,20 @@ const FeesTab = ({ detail }) => {
               const Icon = m.icon; const active = method === m.key;
               return (
                 <button key={m.key} onClick={() => setMethod(m.key)} className={`w-full flex items-center gap-3 rounded-xl px-4 py-3 border transition ${active ? 'border-[#e0b64a] bg-[#fcf7ea]' : 'border-gray-200 hover:bg-gray-50'}`}>
-                  <Icon className={`w-4 h-4 ${active ? 'text-[#C4141B]' : 'text-[#888]'}`} />
-                  <span className={`text-[13px] font-medium ${active ? 'text-[#C4141B]' : 'text-[#555]'}`}>{m.key}</span>
-                  <span className={`ml-auto w-4 h-4 rounded-full border flex items-center justify-center ${active ? 'border-[#C4141B]' : 'border-gray-300'}`}>{active && <span className="w-2 h-2 rounded-full bg-[#C4141B]" />}</span>
+                  <Icon className={`w-4 h-4 ${active ? 'text-[#4F46E5]' : 'text-[#888]'}`} />
+                  <span className={`text-[13px] font-medium ${active ? 'text-[#4F46E5]' : 'text-[#555]'}`}>{m.key}</span>
+                  <span className={`ml-auto w-4 h-4 rounded-full border flex items-center justify-center ${active ? 'border-[#4F46E5]' : 'border-gray-300'}`}>{active && <span className="w-2 h-2 rounded-full bg-[#4F46E5]" />}</span>
                 </button>
               );
             })}
           </div>
           <div className="flex justify-between items-center py-4 border-t border-gray-100">
             <span className="text-[14px] font-semibold text-[#333]">Outstanding Due</span>
-            <span className="text-[20px] font-poppins font-bold text-[#C4141B]">{fmt(due)}</span>
+            <span className="text-[20px] font-poppins font-bold text-[#4F46E5]">{fmt(due)}</span>
           </div>
           <label className="block text-[12px] text-[#8a8a8a] mb-1.5">Amount being paid (₹)</label>
-          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Enter amount" className="w-full h-11 rounded-lg bg-[#f6f6f7] border border-[#ececee] px-3.5 text-[14px] mb-3 focus:outline-none focus:ring-2 focus:ring-red-100" />
-          <button onClick={pay} disabled={paying || due <= 0} className="w-full flex items-center justify-center gap-2 bg-[#C4141B] hover:bg-[#a91116] text-white text-[14px] font-medium rounded-xl py-3 shadow-sm transition mb-3 disabled:opacity-60">{paying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} {due <= 0 ? 'Fully Paid' : 'Process Payment'}</button>
+          <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Enter amount" className="w-full h-11 rounded-lg bg-[#f6f6f7] border border-[#ececee] px-3.5 text-[14px] mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-100" />
+          <button onClick={pay} disabled={paying || due <= 0} className="w-full flex items-center justify-center gap-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white text-[14px] font-medium rounded-xl py-3 shadow-sm transition mb-3 disabled:opacity-60">{paying ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />} {due <= 0 ? 'Fully Paid' : 'Process Payment'}</button>
           <div className="grid grid-cols-2 gap-3">
             <button onClick={printPage} className="flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-[12px] text-[#555] hover:bg-gray-50"><Printer className="w-3.5 h-3.5" /> Print Receipt</button>
             <button onClick={printPage} className="flex items-center justify-center gap-2 border border-gray-200 rounded-xl py-2.5 text-[12px] text-[#555] hover:bg-gray-50"><Mail className="w-3.5 h-3.5" /> Email Invoice</button>

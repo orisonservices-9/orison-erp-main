@@ -51,7 +51,8 @@ cp .env.example .env
 #   MONGO_URL=mongodb://localhost:27017
 #   DB_NAME=orison
 #   JWT_SECRET=<any-long-random-string>
-#   CORS_ORIGINS=*
+#   ALLOWED_ORIGINS=http://localhost:3000
+#   PARENT_OTP_DEBUG=true            # development only
 
 # Run the API (dev)
 uvicorn server:app --reload --host 0.0.0.0 --port 8001
@@ -86,6 +87,10 @@ Login is **role-based via buttons** on the landing page (demo has no password):
 **Login as Admin** (all modules), **Login as principal**, **Login as Fee Manager**.
 Each calls `POST /api/auth/login` with `{ "role": "<role>" }` and stores the JWT in
 `localStorage`.
+
+The **Parent App Center** is available to authorised staff and operates payment-proof
+review, family support, targeted notices, hall tickets, homework completion and live
+transport status. The separate parent-scoped API is documented in `docs/API.md`.
 
 ---
 
