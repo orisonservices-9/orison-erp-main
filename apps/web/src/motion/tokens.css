@@ -1,0 +1,32 @@
+:root {
+  --motion-fast: 160ms;
+  --motion-standard: 280ms;
+  --motion-slow: 420ms;
+  --ease-liquid: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --brand: #4F46E5;
+  --brand-mid: #6366F1;
+  --brand-soft: #8B5CF6;
+  --brand-deep: #4338CA;
+  --brand-ink: #0f172a;
+  --canvas: #F7F8FC;
+  --canvas-wash: #F8FAFF;
+  --surface: #ffffff;
+  --line: rgba(226, 232, 240, 0.95);
+  --muted: #64748b;
+  --logo: #E01E26;
+
+  --radius-control: 0.75rem;
+  --radius-surface: 1rem;
+  --shadow-surface: 0 1px 0 rgba(255, 255, 255, 0.8) inset, 0 10px 28px rgba(15, 23, 42, 0.06);
+  --shadow-raised: 0 1px 0 rgba(255, 255, 255, 0.85) inset, 0 16px 36px rgba(15, 23, 42, 0.09);
+  --shadow-float: 0 18px 40px rgba(15, 23, 42, 0.14);
+  --focus-glow: 0 0 0 4px rgba(79, 70, 229, 0.14);
+  --z-header: 30;
+  --z-flyout: 60;
+  --z-menu: 70;
+  --z-dialog: 80;
+}

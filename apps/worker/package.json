@@ -1,0 +1,13 @@
+{
+  "name": "@orison/worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "start": "tsx src/main.ts"
+  },
+  "devDependencies": {
+    "tsx": "4.19.3",
+    "typescript": "5.8.2"
+  }
+}
