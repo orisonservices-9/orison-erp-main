@@ -21,9 +21,9 @@ School records are kept in memory for this API process and reset when it restart
 
 ## Deploy the web app on Vercel
 
-The hosted app is `apps/web`. Import this repository and leave the project root as the repository root so the root `vercel.json` is used. It installs and builds only the Vite app, and sends every app route to `index.html`.
+The hosted app is `apps/web`. In the Vercel import, set the root directory to `apps/web` (the Vite app), not `apps` or `api`. That folder installs with npm and builds the admin panel on its own. Every screen route is sent to `index.html`.
 
-Set the production branch to `development`. Deployments from `main` are turned off in `vercel.json`.
+Use the `development` branch for the deployment. The admin panel still loads without the API and shows the built-in demo school.
 
 Optional environment variable, set before the build:
 
