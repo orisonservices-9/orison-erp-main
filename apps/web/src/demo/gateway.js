@@ -38,7 +38,12 @@ const lists = new Map([
   ['inventory/items', [{ id: 'INV-1', item_name: 'A4 ream', category: 'Stationery', sku: 'STN-A4', quantity: 42, unit: 'ream', reorder_level: 12, unit_price: 280, stock_value: 11760, location: 'Central Store', supplier: 'Campus Stationery', stock_status: 'In Stock' }, { id: 'INV-2', item_name: 'Lab apron', category: 'Science', sku: 'SCI-APR', quantity: 8, unit: 'piece', reorder_level: 10, unit_price: 450, stock_value: 3600, location: 'Science Lab', supplier: 'Lab Supplies Co.', stock_status: 'Low Stock' }]],
   ['inventory/transactions', []],
   ['expenses', [{ id: 'EXP-1', paid_to: 'City Fuel Station', description: 'Bus diesel', category: 'Transport', amount: 8600, expense_date: '2026-10-03', status: 'Paid', payment_method: 'UPI', reference: 'INV-4412' }]],
-  ['homework', [{ id: 'HW-1', title: 'Linear equations', subject: 'Mathematics', class_name: 'Class 8', section: 'A', due_date: '2026-10-10', teacher_name: 'Kavitha Menon', status: 'Assigned' }]],
+  ['homework', [{ id: 'HW-1', title: 'Linear equations', subject: 'Mathematics', class_name: 'Class 8', section: 'A', due_date: '2026-10-10', teacher_name: 'Kavitha Menon', status: 'Assigned', instructions: 'Solve the textbook exercise.' }]],
+  ['parent-center/hall-tickets', [{ id: 'HT-1', title: 'Term 1 Examination', class_name: 'Class 8', section: 'A', status: 'Published', venue: 'Hall A', papers: [{ subject: 'Mathematics' }, { subject: 'Science' }, { subject: 'English' }] }]],
+  ['payments/razorpay', [
+    { id: 'RZP-1', payment_id: 'pay_demo_1001', order_id: 'order_demo_1001', student_name: 'Aarav Reddy', fee_name: 'Term 2 tuition', amount: 18500, status: 'Verified', method: 'UPI' },
+    { id: 'RZP-2', payment_id: 'pay_demo_1002', order_id: 'order_demo_1002', student_name: 'Saanvi Reddy', fee_name: 'Term 2 tuition', amount: 10000, status: 'Created', method: 'UPI' },
+  ]],
   ['platform/schools', [{ id: 'SCH-1', name: 'Orison Main Campus', status: 'Active', plan: 'Campus' }]],
   ['platform/plans', [{ id: 'PLN-1', name: 'Campus', status: 'Active', price: 'Contact' }]],
   ['platform/subscriptions', [{ id: 'SUB-1', school: 'Orison Main Campus', plan: 'Campus', status: 'Active' }]],
@@ -166,9 +171,19 @@ const objects = {
 };
 
 const pathOf = (url = '') => {
-  const clean = String(url).split('?')[0].replace(/\/$/, '');
+  const raw = String(url).split('?')[0];
+  const withoutHost = raw.includes('://') ? raw.replace(/^https?:\/\/[^/]+/i, '') : raw;
+  const clean = `/${withoutHost}`.replace(/\/+/g, '/').replace(/\/$/, '') || '/';
   return clean.startsWith('/api/') ? clean.slice(4) : clean;
 };
+
+const expectsObject = (path) => path === '/results'
+  || path === '/search'
+  || path === '/auth/login'
+  || path === '/fees/summary'
+  || path.startsWith('/report-card/')
+  || path.endsWith('/detail')
+  || Boolean(objects[path]);
 
 export const demoCanAnswer = (url) => {
   const path = pathOf(url);
@@ -177,8 +192,9 @@ export const demoCanAnswer = (url) => {
 };
 
 export const isThinResponse = (url, data) => {
+  if (data == null || typeof data !== 'object') return true;
   const path = pathOf(url);
-  if (path === '/results') return !data || Array.isArray(data) || !data.available_groups;
+  if (path === '/results') return Array.isArray(data) || !data.available_groups;
   if (path === '/analytics/dashboard' || path === '/analytics/fee') return !data?.stats?.students;
   if (path === '/academic-structure') return !data?.classes?.length;
   if (path === '/notifications/center') return !data?.history?.length && !data?.items?.length;
@@ -187,7 +203,7 @@ export const isThinResponse = (url, data) => {
   if (path.startsWith('/report-card/')) return !data?.student?.name;
   if (path.endsWith('/detail')) return !data?.student && !data?.fees;
   if (Array.isArray(data)) return data.length === 0;
-  return false;
+  return !expectsObject(path);
 };
 
 export const demoAnswer = (config = {}) => {

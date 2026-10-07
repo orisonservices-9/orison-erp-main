@@ -2,7 +2,7 @@ const avatar = (name) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="h
 
 const student = (id, name, admission_no, roll, class_name, section, parent_name, parent_phone, dob, gender) => ({
   id, name, admission_no, roll, class_name, section, parent_name, parent_phone, phone: parent_phone, dob, gender,
-  status: 'Active', avatar: avatar(name),
+  status: 'Active', academic_year: '2026–27', avatar: avatar(name),
 });
 
 export const createCampus = () => {
