@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Layout from '../../components/Layout';
 import { PageTitle, StatCards, Card, Btn, Badge, Field, ProgressBar, SearchBar } from '../../components/Shared';
-import { Building2, Users, Briefcase, MapPin, Plus, BrainCircuit, TrendingUp, TrendingDown, AlertTriangle, Sparkles, User, Bell, Shield, CreditCard, CheckCircle, X, School, CalendarDays, UserCog, IndianRupee, MessageSquareText, Plug, Database, Save, Upload, KeyRound, Smartphone, Mail, ReceiptIndianRupee, Clock3, FileText, Download, LockKeyhole, Globe2, Palette, ChevronRight, CheckCircle2, CloudCog, History, RefreshCcw, Crown, GraduationCap, Wallet, CalendarCheck, Activity, Network, BarChart3, Radio, Search, Settings2 } from 'lucide-react';
+import { Building2, Users, Briefcase, MapPin, Plus, BrainCircuit, TrendingUp, TrendingDown, AlertTriangle, Sparkles, User, Bell, Shield, CreditCard, CheckCircle, X, School, CalendarDays, UserCog, IndianRupee, MessageSquareText, Plug, Database, Save, Upload, KeyRound, Smartphone, Mail, ReceiptIndianRupee, Clock3, FileText, Download, LockKeyhole, Globe2, Palette, ChevronRight, CheckCircle2, CloudCog, History, RefreshCcw, Crown, GraduationCap, Wallet, CalendarCheck, Activity, Network, BarChart3, Radio, Search } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import api from '../../api';
 import { useAuth } from '../../context/AuthContext';
@@ -54,7 +54,7 @@ export const MultiBranch = ({ mode = 'overview' }) => {
   // Load once when this workspace opens. Manual refreshes use the same loader.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, []);
-  const branches = networkData.branches || [];
+  const branches = useMemo(() => networkData.branches || [], [networkData.branches]);
   const selected = branches.find(branch => branch.id === selectedId) || branches[0];
   const filtered = useMemo(() => { const term = query.trim().toLowerCase(); return term ? branches.filter(branch => [branch.name, branch.code, branch.city, branch.principal_name].some(value => String(value || '').toLowerCase().includes(term))) : branches; }, [branches, query]);
   const createBranch = async (event) => { event.preventDefault(); setError(''); try { const { data } = await api.post('/branches', { ...draft, capacity:Number(draft.capacity || 0) }); setDraft(emptyDraft); setAdding(false); setSelectedId(data.id); setNotice(`${data.name} was created in Setup mode. Complete the readiness checklist before operations begin.`); await load(); } catch (err) { setError(err.response?.data?.detail || 'Could not create this branch.'); } };
@@ -199,7 +199,6 @@ export const SettingsPage = () => {
     <Layout>
       <PageTitle title="Settings" subtitle="Configure the school-wide rules, access and services used across Orison." actions={<div className="flex items-center gap-2 rounded-xl border border-green-100 bg-green-50 px-3 py-2 text-[9px] font-semibold text-green-700"><CheckCircle2 className="h-4 w-4"/>System healthy</div>} />
       {saved && <div className="mb-5 flex items-center justify-between rounded-xl border border-green-100 bg-green-50 px-4 py-3 text-[13px] text-green-700"><span className="flex items-center gap-2"><CheckCircle className="w-4 h-4" />{saved}</span><button onClick={() => setSaved('')}><X className="w-4 h-4" /></button></div>}
-      <div className="mb-6 overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-800 p-7 text-white shadow-xl shadow-indigo-100"><div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between"><div><span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[9px] font-bold uppercase tracking-[0.16em]"><Settings2 className="h-3.5 w-3.5"/> School configuration</span><h2 className="mt-4 text-2xl font-bold">One trusted setup for every school workspace.</h2><p className="mt-2 max-w-xl text-[11px] leading-5 text-indigo-100/65">Identity, academic defaults, finance rules, communication channels and security controls now save centrally.</p></div><div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{[['School',settings.schoolName || 'Not set',School],['Academic year',settings.academicYear || 'Not set',CalendarDays],['Channels',[toggles.sms,toggles.email,toggles.push].filter(Boolean).length + ' enabled',MessageSquareText],['Security',toggles.twofa && toggles.audit ? 'Protected' : 'Review',Shield]].map(([label,value,Icon])=><div key={label} className="min-w-[125px] rounded-2xl border border-white/10 bg-white/10 p-4"><Icon className="h-4 w-4 text-indigo-200"/><b className="mt-3 block truncate text-[12px]">{value}</b><small className="text-[8px] uppercase tracking-wider text-indigo-100/50">{label}</small></div>)}</div></div></div>
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[260px_1fr]">
         <Card pad="p-2" className="self-start lg:sticky lg:top-5">
           {tabs.map((x) => {

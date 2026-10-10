@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { Download, Users, ClipboardList, Loader2, CheckCircle2, Sparkles, BookOpen, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
+import { Download, Users, ClipboardList, Loader2, CheckCircle2, BookOpen, ShieldCheck, ArrowRight, AlertCircle } from 'lucide-react';
 import api from '../api';
 import { downloadCSV } from '../utils';
 
@@ -109,13 +109,7 @@ const AddMarks = () => {
 
   return (
     <Layout>
-      <section className="mb-6 overflow-hidden rounded-[28px] border border-indigo-900/10 bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 px-7 py-7 text-white shadow-[0_24px_55px_rgba(49,46,129,0.22)]">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div><span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-100"><Sparkles className="h-3.5 w-3.5" /> Smart marks workspace</span><h2 className="mt-4 font-poppins text-[28px] font-bold tracking-[-0.04em]">Turn exam scores into trusted results</h2><p className="mt-2 max-w-2xl text-[12px] leading-5 text-indigo-100/70">Choose the scheduled examination, verify the live class roster and attendance, enter scores, then publish a validated result sheet.</p></div>
-          <div className="min-w-[260px] rounded-2xl border border-white/10 bg-white/[0.08] p-4 backdrop-blur"><div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-wider text-indigo-100/65">Marks completion</span><strong className="font-poppins text-[20px]">{entryProgress}%</strong></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-300 transition-all" style={{ width: `${entryProgress}%` }} /></div><p className="mt-2 text-[10px] text-indigo-100/60">{enteredCount} of {rows.length || 0} student scores entered</p></div>
-        </div>
-        <div className="mt-7 grid grid-cols-2 gap-2 md:grid-cols-4">{[['01', 'Choose Class & Section'], ['02', 'Load Student List'], ['03', 'Enter scores'], ['04', 'Validate & publish']].map(([number, label], index) => { const active = index === 0 || (index === 1 && Boolean(selectedExam && meta.subject)) || (index === 2 && rows.length > 0) || (index === 3 && rows.length > 0 && enteredCount === rows.length); return <div key={number} className={`rounded-xl border px-3 py-3 ${active ? 'border-cyan-300/25 bg-cyan-300/10' : 'border-white/10 bg-white/[0.04]'}`}><span className="text-[9px] font-bold text-indigo-200/60">{number}</span><p className="mt-1 text-[11px] font-bold">{label}</p></div>; })}</div>
-      </section>
+      <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><h1 className="font-poppins text-[26px] font-bold tracking-[-0.035em] text-slate-950">Add Marks</h1><p className="mt-1 text-[12px] text-slate-500">Choose the examination and Student List, then enter and validate scores.</p></div>{rows.length > 0 && <div className="min-w-[220px]"><div className="flex justify-between text-[10px] font-semibold text-slate-500"><span>Marks completion</span><span>{entryProgress}%</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600" style={{ width: `${entryProgress}%` }} /></div></div>}</div>
 
       {notice && <div className="mb-5 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3.5 text-[12px] font-medium text-amber-800"><AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />{notice}</div>}
       {loading ? <div className="flex justify-center py-20 text-[#888]"><Loader2 className="h-7 w-7 animate-spin" /></div> : !scheduledExams.length ? <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-[14px] text-amber-800">There are no scheduled exams yet. Create and schedule an exam first, then return here to enter marks.</div> : <>

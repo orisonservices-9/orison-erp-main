@@ -11,7 +11,9 @@ const Sidebar = () => {
   const path = location.pathname;
   const { auth, logout } = useAuth();
 
-  const menu = auth?.menu; // null = all keys
+  const menu = auth?.role === 'academic_coordinator'
+    ? ['dashboard', 'academics', 'notifications']
+    : auth?.menu; // null = admin (all keys)
   const items = menu ? NAV_ITEMS.filter((i) => menu.includes(i.key)) : NAV_ITEMS;
 
   const initialOpen = () => {

@@ -6,7 +6,6 @@ import { ArrowRight, CheckCircle2, Loader2, ShieldCheck, Sparkles } from 'lucide
 
 const roles = [
   { label: 'Login as Admin', role: 'admin' },
-  { label: 'Login as principal', role: 'principal' },
   { label: 'Login as Director', role: 'director' },
   { label: 'Login as Academic Coordinator', role: 'academic_coordinator' },
   { label: 'Login as Fee Manager', role: 'fee_manager' },

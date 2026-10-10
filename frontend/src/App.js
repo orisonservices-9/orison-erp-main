@@ -48,7 +48,9 @@ const AccessDenied = () => (
 const Protected = ({ requiredKey, children }) => {
   const { auth } = useAuth();
   if (!auth) return <Navigate to="/" replace />;
-  const menu = auth.menu; // null = admin (all)
+  const menu = auth.role === 'academic_coordinator'
+    ? ['dashboard', 'academics', 'notifications']
+    : auth.menu; // null = admin (all)
   if (menu && requiredKey && !menu.includes(requiredKey)) return <AccessDenied />;
   return children;
 };

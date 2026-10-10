@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
-import { FileText, ListChecks, CalendarClock, Loader2, Plus, Trash2, CheckCircle2, Sparkles, ShieldCheck, BookOpen, AlertCircle } from 'lucide-react';
+import { FileText, ListChecks, CalendarClock, Loader2, Plus, Trash2, CheckCircle2, ShieldCheck, BookOpen, AlertCircle } from 'lucide-react';
 import api from '../api';
 
 const Field = ({ label, hint, children }) => <label className="block text-[10px] font-bold uppercase tracking-[0.09em] text-slate-500">{label}{hint && <span className="ml-2 normal-case tracking-normal text-slate-400">{hint}</span>}<div className="mt-2">{children}</div></label>;
@@ -72,13 +72,7 @@ const CreateExam = () => {
 
   return (
     <Layout>
-      <div className="mb-6 overflow-hidden rounded-3xl border border-indigo-100 bg-gradient-to-br from-slate-950 via-indigo-950 to-violet-900 p-7 text-white shadow-[0_25px_60px_rgba(49,46,129,0.22)]">
-        <div className="flex flex-col justify-between gap-6 lg:flex-row lg:items-end">
-          <div><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-100"><Sparkles className="h-3.5 w-3.5" /> Smart examination setup</div><h2 className="font-poppins text-[28px] font-bold tracking-[-0.045em]">Create an examination with confidence</h2><p className="mt-2 max-w-2xl text-[12px] leading-5 text-indigo-100/70">Assign the right learners and subjects, lock the schedule, define assessment rules, then review everything before publishing.</p></div>
-          <div className="min-w-[250px] rounded-2xl border border-white/10 bg-white/[0.08] p-4 backdrop-blur"><div className="flex items-center justify-between"><span className="text-[10px] font-bold uppercase tracking-wider text-indigo-100/65">Setup readiness</span><strong className="font-poppins text-[20px]">{completion}%</strong></div><div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10"><div className="h-full rounded-full bg-gradient-to-r from-cyan-300 to-violet-300 transition-all" style={{ width: `${completion}%` }} /></div><p className="mt-2 text-[10px] text-indigo-100/60">{readinessCount} of {readiness.length} essentials complete</p></div>
-        </div>
-        <div className="mt-7 grid grid-cols-2 gap-2 md:grid-cols-4">{[['01', 'Assignment'], ['02', 'Schedule'], ['03', 'Assessment'], ['04', 'Review & publish']].map(([number, label], index) => <div key={number} className={`rounded-xl border px-3 py-3 ${index < readinessCount ? 'border-emerald-300/25 bg-emerald-300/10' : 'border-white/10 bg-white/[0.05]'}`}><span className="text-[9px] font-bold text-indigo-200/60">{number}</span><p className="mt-1 text-[11px] font-bold">{label}</p></div>)}</div>
-      </div>
+      <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-end"><div><h1 className="font-poppins text-[26px] font-bold tracking-[-0.035em] text-slate-950">Create Examination</h1><p className="mt-1 text-[12px] text-slate-500">Assign learners and subjects, set the schedule, then review before publishing.</p></div><div className="min-w-[220px]"><div className="flex justify-between text-[10px] font-semibold text-slate-500"><span>Setup readiness</span><span>{readinessCount}/{readiness.length}</span></div><div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full rounded-full bg-indigo-600" style={{ width: `${completion}%` }} /></div></div></div>
 
       {loadingSetup ? <div className="flex justify-center py-20 text-[#888]"><Loader2 className="h-7 w-7 animate-spin" /></div> : !structure.classes?.length ? (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-[14px] text-amber-800">Please complete <strong>Academic Setup</strong> first. Add the Academic Year, Class, Section and Subjects, then return here to create an exam.</div>

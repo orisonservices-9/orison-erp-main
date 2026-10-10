@@ -3,13 +3,12 @@ import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck, UserCog, Briefcase,
   Wallet, FileText, ClipboardList, BookOpen, CalendarDays, Boxes, Receipt,
   Bell, Bus, MessageSquare, UserCheck, HelpCircle, BadgeDollarSign,
-  Fingerprint, Building2, Settings, Gauge, TicketCheck
+  Fingerprint, Building2, Settings, TicketCheck
 } from 'lucide-react';
 
 // Sidebar navigation config
 export const NAV_ITEMS = [
   { key: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
-  { key: 'management', label: 'School Operations Center', icon: Gauge, path: '/management/action-center' },
   {
     key: 'student', label: 'Student Management', icon: Users,
     children: [

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Bell, BookOpen, ChevronDown, Command, GraduationCap, Loader2, LogOut,
-  Search, Settings, ShieldCheck, Smartphone, Users,
+  Search, Settings, ShieldCheck, Users,
 } from 'lucide-react';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
@@ -79,12 +79,6 @@ const TopBar = () => {
         </div>
 
         <div className="flex items-center gap-2.5" ref={boxRef}>
-          {isDashboard && canOpen('parent_app') && (
-            <button onClick={() => go('/parent-app')} className="hidden h-10 items-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50 px-3 text-[10px] font-bold text-[#4338CA] transition hover:-translate-y-0.5 hover:bg-indigo-100 xl:flex">
-              <Smartphone className="h-4 w-4" /> Parent App Center
-            </button>
-          )}
-
           <div className="relative hidden md:block">
             <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
             <input
@@ -126,7 +120,6 @@ const TopBar = () => {
             {menuOpen && (
               <div className="absolute right-0 top-12 w-60 overflow-hidden rounded-2xl border border-slate-100 bg-white p-2 shadow-[0_22px_55px_rgba(15,23,42,0.16)]">
                 <div className="rounded-xl bg-gradient-to-br from-slate-900 to-slate-800 px-3 py-3 text-white"><p className="text-[11px] font-semibold">{auth?.name || 'Admin'}</p><p className="mt-1 flex items-center gap-1.5 text-[8px] uppercase tracking-wide text-white/50"><ShieldCheck className="h-3 w-3 text-emerald-400" /> Verified staff session</p></div>
-                {canOpen('parent_app') && <MenuButton icon={Smartphone} label="Parent App Center" onClick={() => go('/parent-app')} />}
                 {canOpen('settings') && <MenuButton icon={Settings} label="Workspace settings" onClick={() => go('/settings')} />}
                 <button onClick={() => { logout(); navigate('/'); }} className="mt-1 flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-[11px] font-semibold text-[#4F46E5] transition hover:bg-indigo-50"><LogOut className="h-4 w-4" /> Sign out securely</button>
               </div>

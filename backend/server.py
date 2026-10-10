@@ -30,7 +30,10 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+APP_ENV = os.environ.get('APP_ENV', 'development').strip().lower()
 JWT_SECRET = os.environ.get('JWT_SECRET', 'dev-secret')
+if APP_ENV in {'production', 'prod'} and (JWT_SECRET == 'dev-secret' or len(JWT_SECRET) < 32):
+    raise RuntimeError('Production requires JWT_SECRET with at least 32 characters.')
 JWT_ALGO = 'HS256'
 
 app = FastAPI()
@@ -54,12 +57,6 @@ ROLE_CONFIG = {
         'name': 'Admin',
         'menu': None,  # None = all
     },
-    'principal': {
-        'name': 'Principal',
-        'menu': ['dashboard', 'management', 'student', 'academics', 'attendance', 'teachers', 'staff',
-                 'exams', 'marks', 'homework', 'leave', 'timetable', 'notifications',
-                 'transport', 'communications', 'visitor', 'question', 'collections', 'hall_tickets', 'settings'],
-    },
     'director': {
         'name': 'Director',
         'menu': ['dashboard', 'management', 'student', 'academics', 'attendance', 'teachers', 'staff',
@@ -68,7 +65,7 @@ ROLE_CONFIG = {
     },
     'academic_coordinator': {
         'name': 'Academic Coordinator',
-        'menu': ['dashboard', 'academics', 'teachers', 'notifications', 'hall_tickets'],
+        'menu': ['dashboard', 'academics', 'notifications'],
     },
     'fee_manager': {
         'name': 'Fee Manager',
@@ -79,7 +76,25 @@ ROLE_CONFIG = {
 
 # ---------------- Models ----------------
 class LoginReq(BaseModel):
+    username: str = ""
+    password: str = ""
+    role: str = ""
+
+class BootstrapAdminReq(BaseModel):
+    name: str
+    username: str
+    password: str
+    setup_key: str = ""
+
+class StaffAccountReq(BaseModel):
+    name: str
+    username: str
+    password: str
     role: str
+    menu: Optional[List[str]] = None
+
+class StaffPasswordResetReq(BaseModel):
+    password: str
 
 class StudentDeletionRequest(BaseModel):
     student_ids: List[str]
@@ -290,8 +305,28 @@ class ClassroomObservation(BaseModel):
 
 # ---------------- Auth helpers ----------------
 def create_token(role: str, **claims):
-    payload = {'role': role, 'exp': datetime.utcnow() + timedelta(days=7), **claims}
+    payload = {'role': role, 'exp': datetime.utcnow() + timedelta(hours=12), **claims}
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGO)
+
+def normalize_username(value: str) -> str:
+    return str(value or '').strip().lower()
+
+def validate_password(password: str):
+    if len(password or '') < 10:
+        raise HTTPException(status_code=422, detail='Password must contain at least 10 characters.')
+
+def hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]:
+    validate_password(password)
+    salt_bytes = bytes.fromhex(salt) if salt else secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt_bytes, 310000)
+    return salt_bytes.hex(), base64.b64encode(digest).decode('ascii')
+
+def password_matches(password: str, salt: str, expected: str) -> bool:
+    try:
+        _, actual = hash_password(password, salt)
+        return hmac.compare_digest(actual, expected)
+    except (ValueError, TypeError, HTTPException):
+        return False
 
 def decode_token(authorization: Optional[str]):
     if not authorization or not authorization.startswith('Bearer '):
@@ -315,14 +350,14 @@ async def get_parent_current(authorization: Optional[str] = Header(None)):
         raise HTTPException(status_code=403, detail='A verified parent session is required.')
     return payload
 
-PARENT_CENTER_ROLES = {'admin', 'principal', 'director', 'academic_coordinator', 'fee_manager'}
+PARENT_CENTER_ROLES = {'admin', 'director', 'academic_coordinator', 'fee_manager'}
 PARENT_FINANCE_ROLES = {'admin', 'director', 'fee_manager'}
-PARENT_ACADEMIC_ROLES = {'admin', 'principal', 'director', 'academic_coordinator'}
-PARENT_TRANSPORT_ROLES = {'admin', 'principal', 'director'}
+PARENT_ACADEMIC_ROLES = {'admin', 'director', 'academic_coordinator'}
+PARENT_TRANSPORT_ROLES = {'admin', 'director'}
 
 def require_roles(role: str, allowed: set):
     if role not in allowed:
-        raise HTTPException(status_code=403, detail='Your staff role cannot perform this Parent App action.')
+        raise HTTPException(status_code=403, detail='Your staff role does not have permission to perform this action.')
 
 def clean(doc):
     if doc and '_id' in doc:
@@ -342,8 +377,8 @@ NOTIFICATION_RULES = [
     {'key': 'fee_due', 'event': 'Fee due or overdue', 'audience': 'Parent + Fee Manager', 'description': 'Remind parents about unpaid fee heads; show a follow-up alert to Fee Manager.', 'channels': ['Parent App', 'WhatsApp'], 'enabled': True},
     {'key': 'exam_result', 'event': 'Results published', 'audience': 'Parent', 'description': 'Tell the parent when published marks and report card are ready.', 'channels': ['Parent App'], 'enabled': True},
     {'key': 'syllabus_delay', 'event': 'Chapter behind timeline', 'audience': 'Teacher + Academic Coordinator', 'description': 'Alert the responsible teacher and Academic Coordinator when the planned date passes.', 'channels': ['Website Alert', 'App Push'], 'enabled': True},
-    {'key': 'critical_escalation', 'event': 'Critical academic or collection issue', 'audience': 'Principal + Director', 'description': 'Escalate only critical, unresolved issues to leadership.', 'channels': ['Website Alert', 'App Push'], 'enabled': True},
-    {'key': 'approval_request', 'event': 'Approval requested', 'audience': 'Principal + Director', 'description': 'Send approval and OTP requests for sensitive changes.', 'channels': ['Website Alert', 'App Push'], 'enabled': True},
+    {'key': 'critical_escalation', 'event': 'Critical academic or collection issue', 'audience': 'Director', 'description': 'Escalate only critical, unresolved issues to leadership.', 'channels': ['Website Alert', 'App Push'], 'enabled': True},
+    {'key': 'approval_request', 'event': 'Approval requested', 'audience': 'Director', 'description': 'Send approval and OTP requests for sensitive changes.', 'channels': ['Website Alert', 'App Push'], 'enabled': True},
 ]
 
 async def get_notification_rules():
@@ -644,7 +679,7 @@ async def update_staff(staff_id: str, payload: dict, role: str = Depends(get_cur
 # ---------------- HR & Payroll ----------------
 @api_router.get('/hr/payroll-center')
 async def hr_payroll_center(month: str, role: str = Depends(get_current)):
-    require_roles(role, {'admin', 'principal', 'director'})
+    require_roles(role, {'admin', 'director'})
     try:
         month_start = datetime.strptime(month, '%Y-%m')
     except ValueError:
@@ -923,7 +958,7 @@ async def fee_structures(role: str = Depends(get_current)):
 @api_router.get("/fees/edit-requests")
 async def fee_edit_requests(role: str = Depends(get_current)):
     rows = [clean(x) for x in await db.fee_edit_requests.find({'status': 'Pending'}).sort('requested_at', -1).to_list(100)]
-    if role not in {'principal', 'director'}:
+    if role != 'director':
         for row in rows:
             row.pop('otp', None)
     return rows
@@ -1090,8 +1125,8 @@ async def create_exam(e: Exam, role: str = Depends(get_current)):
 
 @api_router.delete("/exams")
 async def clear_exams(role: str = Depends(get_current)):
-    if role not in ('admin', 'director', 'principal'):
-        raise HTTPException(status_code=403, detail='Only Admin, Principal or Director can clear examination records.')
+    if role not in ('admin', 'director'):
+        raise HTTPException(status_code=403, detail='Only Admin or Director can clear examination records.')
     result = await db.exams.delete_many({})
     await add_event('info', 'Examination records cleared', f"{result.deleted_count} old examination record(s) were removed before the new academic setup.")
     return {'deleted': result.deleted_count}
@@ -1593,11 +1628,13 @@ def inventory_public(item: dict) -> dict:
 
 @api_router.get("/inventory/items")
 async def list_inventory_items(role: str = Depends(get_current)):
+    require_roles(role, {'admin'})
     rows = await db.inventory_items.find().sort('item_name', 1).to_list(2000)
     return [inventory_public(row) for row in rows]
 
 @api_router.post("/inventory/items")
 async def create_inventory_item(item: InventoryItem, role: str = Depends(get_current)):
+    require_roles(role, {'admin'})
     name = item.item_name.strip()
     if not name:
         raise HTTPException(status_code=422, detail='Enter an item name.')
@@ -1620,6 +1657,7 @@ async def create_inventory_item(item: InventoryItem, role: str = Depends(get_cur
 
 @api_router.put("/inventory/items/{item_id}")
 async def update_inventory_item(item_id: str, item: InventoryItem, role: str = Depends(get_current)):
+    require_roles(role, {'admin'})
     current = await db.inventory_items.find_one({'id': item_id})
     if not current:
         raise HTTPException(status_code=404, detail='Inventory item not found.')
@@ -1637,6 +1675,7 @@ async def update_inventory_item(item_id: str, item: InventoryItem, role: str = D
 
 @api_router.post("/inventory/items/{item_id}/movement")
 async def create_inventory_movement(item_id: str, payload: dict, role: str = Depends(get_current)):
+    require_roles(role, {'admin'})
     item = await db.inventory_items.find_one({'id': item_id})
     if not item:
         raise HTTPException(status_code=404, detail='Inventory item not found.')
@@ -1672,6 +1711,7 @@ async def create_inventory_movement(item_id: str, payload: dict, role: str = Dep
 @api_router.post("/inventory/items/{item_id}/purchase")
 async def purchase_inventory_item(item_id: str, payload: dict, role: str = Depends(get_current)):
     """Receive a purchased stock item and automatically record the outgoing payment."""
+    require_roles(role, {'admin'})
     item = await db.inventory_items.find_one({'id': item_id})
     if not item:
         raise HTTPException(status_code=404, detail='Inventory item not found.')
@@ -1714,6 +1754,7 @@ async def purchase_inventory_item(item_id: str, payload: dict, role: str = Depen
 @api_router.post("/inventory/items/{item_id}/issue-to-parent")
 async def issue_inventory_to_parent(item_id: str, payload: dict, role: str = Depends(get_current)):
     """Issue a stocked book/item to a parent and create a matching student fee head."""
+    require_roles(role, {'admin'})
     item = await db.inventory_items.find_one({'id': item_id})
     if not item:
         raise HTTPException(status_code=404, detail='Inventory item not found.')
@@ -1759,17 +1800,20 @@ async def issue_inventory_to_parent(item_id: str, payload: dict, role: str = Dep
 
 @api_router.get("/inventory/transactions")
 async def list_inventory_transactions(role: str = Depends(get_current)):
+    require_roles(role, {'admin'})
     rows = await db.inventory_transactions.find().sort('created', -1).to_list(3000)
     return [clean(row) for row in rows]
 
 # ---------------- Expenses ----------------
 @api_router.get("/expenses")
 async def list_expenses(role: str = Depends(get_current)):
+    require_roles(role, {'admin', 'director', 'fee_manager'})
     rows = await db.expenses.find().sort([('expense_date', -1), ('created', -1)]).to_list(3000)
     return [clean(row) for row in rows]
 
 @api_router.post("/expenses")
 async def create_expense(expense: ExpenseEntry, role: str = Depends(get_current)):
+    require_roles(role, {'admin', 'fee_manager'})
     if not expense.expense_date.strip():
         raise HTTPException(status_code=422, detail='Choose the expense date.')
     if not expense.category.strip() or not expense.paid_to.strip() or not expense.description.strip():
@@ -1803,6 +1847,10 @@ async def update_expense_status(expense_id: str, payload: dict, role: str = Depe
     }
     if next_status not in allowed.get(current_status, set()):
         raise HTTPException(status_code=422, detail=f'Cannot change this expense from {current_status} to {next_status}.')
+    if next_status in {'Approved', 'Rejected'}:
+        require_roles(role, {'admin', 'director'})
+    elif next_status == 'Paid':
+        require_roles(role, {'admin', 'fee_manager'})
     now = datetime.utcnow().isoformat()
     actor = ROLE_CONFIG.get(role, {}).get('name', role)
     updates = {'status': next_status, 'updated': now}
@@ -1863,7 +1911,7 @@ async def teacher_performance(role: str = Depends(get_current)):
             'needs_support': [x for x in rows if x['observations'] and x['performance_score'] < 75]}
 
 # ---------------- Multi Branch Management ----------------
-BRANCH_VIEW_ROLES = {'admin', 'director', 'principal'}
+BRANCH_VIEW_ROLES = {'admin', 'director'}
 
 def branch_scope(branch_id: str, extra: Optional[dict] = None) -> dict:
     """Current untagged ERP records belong to the Main Campus."""
@@ -1977,7 +2025,7 @@ async def branch_metrics(branch: dict) -> dict:
 @api_router.get('/branches/network')
 async def branch_network(role: str = Depends(get_current)):
     if role not in BRANCH_VIEW_ROLES:
-        raise HTTPException(status_code=403, detail='Multi Branch Management is available to Admin, Principal and Director.')
+        raise HTTPException(status_code=403, detail='Multi Branch Management is available to Admin and Director.')
     await ensure_main_branch()
     documents = await db.branches.find().sort([('status', 1), ('name', 1)]).to_list(500)
     rows = [await branch_metrics(clean(item)) for item in documents]
@@ -2000,7 +2048,6 @@ async def branch_network(role: str = Depends(get_current)):
         'governance': {
             'admin': 'Creates branches, completes setup and controls branch access.',
             'director': 'Compares every branch and handles management approvals.',
-            'principal': 'Operates the assigned branch and its daily performance.',
             'academic_coordinator': 'Owns academic delivery for the assigned branch.',
             'fee_manager': 'Owns branch billing, collection and follow-up.',
         },
@@ -2043,7 +2090,7 @@ async def update_branch(branch_id: str, payload: dict, role: str = Depends(get_c
 @api_router.get('/branches/{branch_id}')
 async def get_branch(branch_id: str, role: str = Depends(get_current)):
     if role not in BRANCH_VIEW_ROLES:
-        raise HTTPException(status_code=403, detail='Multi Branch Management is available to Admin, Principal and Director.')
+        raise HTTPException(status_code=403, detail='Multi Branch Management is available to Admin and Director.')
     await ensure_main_branch()
     branch = await db.branches.find_one({'id': branch_id})
     if not branch:
@@ -2161,7 +2208,7 @@ async def analytics_dashboard(role: str = Depends(get_current)):
     if overdue_fees:
         priorities.append({'level': 'critical', 'title': 'Overdue fee follow-ups', 'detail': f'₹{sum(float(item.get("due") or 0) for item in overdue_fees):,.0f} needs collection action.', 'value': len(overdue_fees), 'path': '/collections'})
     if pending_approvals:
-        priorities.append({'level': 'medium', 'title': 'Management approvals pending', 'detail': 'Requests are waiting for a Principal or Director decision.', 'value': pending_approvals, 'path': '/notifications'})
+        priorities.append({'level': 'medium', 'title': 'Management approvals pending', 'detail': 'Requests are waiting for a Director decision.', 'value': pending_approvals, 'path': '/notifications'})
     if syllabus_behind:
         priorities.append({'level': 'medium', 'title': 'Syllabus timelines behind', 'detail': 'Chapter plans have crossed their target completion date.', 'value': syllabus_behind, 'path': '/academics/syllabus'})
     if pending_leaves:
@@ -2559,7 +2606,7 @@ async def read_all(role: str = Depends(get_current)):
 
 @api_router.get("/notifications/center")
 async def notification_center(role: str = Depends(get_current)):
-    require_roles(role, {'admin', 'principal', 'director'})
+    require_roles(role, {'admin', 'director'})
     events = [clean(item) for item in await db.events.find().sort('created', -1).to_list(12)]
     broadcasts = [clean(item) for item in await db.notification_broadcasts.find().sort('created', -1).to_list(30)]
     year_requests = [clean(item) for item in await db.academic_year_change_requests.find().sort('created', -1).to_list(20)]
@@ -2612,12 +2659,12 @@ async def notification_center(role: str = Depends(get_current)):
 
 @api_router.get("/notifications/rules")
 async def notification_rules(role: str = Depends(get_current)):
-    require_roles(role, {'admin', 'principal', 'director'})
+    require_roles(role, {'admin', 'director'})
     return await get_notification_rules()
 
 @api_router.put("/notifications/rules/{rule_key}")
 async def update_notification_rule(rule_key: str, payload: NotificationRuleUpdate, role: str = Depends(get_current)):
-    require_roles(role, {'admin', 'principal', 'director'})
+    require_roles(role, {'admin', 'director'})
     if rule_key not in {rule['key'] for rule in NOTIFICATION_RULES}:
         raise HTTPException(status_code=404, detail='Notification rule not found.')
     await db.notification_rules.update_one(
@@ -3158,7 +3205,7 @@ async def get_academic_structure(role: str = Depends(get_current)):
 
 @api_router.get('/settings')
 async def get_school_settings(role: str = Depends(get_current)):
-    require_roles(role, {'admin', 'principal', 'director', 'fee_manager'})
+    require_roles(role, {'admin', 'director', 'fee_manager'})
     record = await db.school_settings.find_one({'id': 'school-settings'})
     return clean(record) if record else {'id': 'school-settings', 'settings': {}, 'toggles': {}, 'updated': ''}
 
@@ -3184,7 +3231,7 @@ async def save_academic_structure(payload: dict, role: str = Depends(get_current
         raise HTTPException(status_code=422, detail='Academic year is required.')
     existing = await db.academic_structure.find_one({'id': 'school-structure'})
     if existing and existing.get('academic_year') and existing.get('academic_year') != academic_year:
-        raise HTTPException(status_code=409, detail='The Academic Year is locked after setup. Submit a change request for Principal or Director approval.')
+        raise HTTPException(status_code=409, detail='The Academic Year is locked after setup. Submit a change request for Director approval.')
     sanitized = []
     for item in classes:
         name = str(item.get('name') or '').strip()
@@ -3207,7 +3254,7 @@ async def get_academic_year_change_request(role: str = Depends(get_current)):
         return None
     response = clean(request)
     # The one-time code is deliberately visible only to the approving authority.
-    if role not in ('principal', 'director'):
+    if role != 'director':
         response.pop('otp', None)
     return response
 
@@ -3226,17 +3273,17 @@ async def request_academic_year_change(payload: dict, role: str = Depends(get_cu
     request = {
         'id': str(uuid.uuid4()), 'current_year': current_year, 'requested_year': next_year,
         'status': 'Pending', 'otp': f"{secrets.randbelow(1000000):06d}",
-        'recipients': ['Principal', 'Director'], 'requested_by': 'Admin',
+        'recipients': ['Director'], 'requested_by': 'Admin',
         'created': datetime.utcnow().isoformat(), 'expires_at': (datetime.utcnow() + timedelta(minutes=30)).isoformat(),
     }
     await db.academic_year_change_requests.insert_one(dict(request))
-    await add_event('warning', 'Academic Year change approval required', f"Admin requested a change from {current_year} to {next_year}. Approval code has been sent to Principal and Director.")
+    await add_event('warning', 'Academic Year change approval required', f"Admin requested a change from {current_year} to {next_year}. Approval code has been sent to the Director.")
     return {'id': request['id'], 'current_year': current_year, 'requested_year': next_year, 'status': 'Pending', 'recipients': request['recipients']}
 
 @api_router.post("/academic-year-change-request/{request_id}/confirm")
 async def confirm_academic_year_change(request_id: str, payload: dict, role: str = Depends(get_current)):
     if role != 'admin':
-        raise HTTPException(status_code=403, detail='Only the Admin can confirm this change using the Principal or Director OTP.')
+        raise HTTPException(status_code=403, detail='Only the Admin can confirm this change using the Director OTP.')
     request = await db.academic_year_change_requests.find_one({'id': request_id, 'status': 'Pending'})
     if not request:
         raise HTTPException(status_code=404, detail='No pending Academic Year change request was found.')
@@ -3247,7 +3294,7 @@ async def confirm_academic_year_change(request_id: str, payload: dict, role: str
         raise HTTPException(status_code=422, detail='The approval code is incorrect.')
     await db.academic_structure.update_one({'id': 'school-structure'}, {'$set': {'academic_year': request['requested_year'], 'updated': datetime.utcnow().isoformat()}})
     await db.academic_year_change_requests.update_one({'id': request_id}, {'$set': {'status': 'Approved', 'confirmed_by': 'Admin', 'confirmed_at': datetime.utcnow().isoformat()}})
-    await add_event('success', 'Academic Year changed', f"Admin confirmed the Academic Year change from {request['current_year']} to {request['requested_year']} using the Principal/Director OTP.")
+    await add_event('success', 'Academic Year changed', f"Admin confirmed the Academic Year change from {request['current_year']} to {request['requested_year']} using the Director OTP.")
     return {'ok': True, 'academic_year': request['requested_year']}
 
 # Student promotion creates a new annual enrolment. It never replaces the
@@ -3260,7 +3307,7 @@ async def get_student_promotion_request(role: str = Depends(get_current)):
     if not request:
         return None
     response = clean(request)
-    if role not in ('principal', 'director'):
+    if role != 'director':
         response.pop('otp', None)
     return response
 
@@ -3322,14 +3369,14 @@ async def request_student_promotion(payload: StudentPromotionRequest, role: str 
         'id': str(uuid.uuid4()), 'source_year': source_year, 'target_year': target_year,
         'entries': prepared, 'summary': counts, 'status': 'Pending',
         'otp': f"{secrets.randbelow(1000000):06d}", 'otp_attempts': 0,
-        'recipients': ['Principal', 'Director'], 'requested_by': 'Admin',
+        'recipients': ['Director'], 'requested_by': 'Admin',
         'created': datetime.utcnow().isoformat(),
         'expires_at': (datetime.utcnow() + timedelta(minutes=30)).isoformat(),
     }
     await db.student_promotion_requests.insert_one(dict(request))
     await add_event(
         'warning', 'Student promotion approval required',
-        f"Admin prepared {len(prepared)} student decisions from {source_year} to {target_year}. The approval code is available to Principal and Director."
+        f"Admin prepared {len(prepared)} student decisions from {source_year} to {target_year}. The approval code is available to the Director."
     )
     return {
         'id': request['id'], 'source_year': source_year, 'target_year': target_year,
@@ -3340,7 +3387,7 @@ async def request_student_promotion(payload: StudentPromotionRequest, role: str 
 @api_router.post("/student-promotion-request/{request_id}/confirm")
 async def confirm_student_promotion(request_id: str, payload: StudentPromotionConfirm, role: str = Depends(get_current)):
     if role != 'admin':
-        raise HTTPException(status_code=403, detail='Only the Admin can confirm promotion using the Principal or Director OTP.')
+        raise HTTPException(status_code=403, detail='Only the Admin can confirm promotion using the Director OTP.')
     request = await db.student_promotion_requests.find_one({'id': request_id, 'status': 'Pending'})
     if not request:
         raise HTTPException(status_code=404, detail='No pending student promotion request was found.')
@@ -3899,8 +3946,8 @@ async def list_curriculum_units(role: str = Depends(get_current)):
         if unit.get('status') != 'Completed' and unit.get('target_date') and unit['target_date'] < today:
             unit['status'] = 'Overdue'
             if not unit.get('overdue_alerted'):
-                await add_event('warning', 'Syllabus timeline overdue', f"{unit.get('teacher_name', 'Assigned teacher')} has not completed {unit.get('chapter')} for {unit.get('class_name')} {unit.get('section')} by {unit.get('target_date')}. Alerted: Principal, Director and Admin.")
-                await db.curriculum_units.update_one({'id': unit['id']}, {'$set': {'status': 'Overdue', 'overdue_alerted': True, 'alert_recipients': ['Principal', 'Director', 'Admin']}})
+                await add_event('warning', 'Syllabus timeline overdue', f"{unit.get('teacher_name', 'Assigned teacher')} has not completed {unit.get('chapter')} for {unit.get('class_name')} {unit.get('section')} by {unit.get('target_date')}. Alerted: Director and Admin.")
+                await db.curriculum_units.update_one({'id': unit['id']}, {'$set': {'status': 'Overdue', 'overdue_alerted': True, 'alert_recipients': ['Director', 'Admin']}})
             else:
                 await db.curriculum_units.update_one({'id': unit['id']}, {'$set': {'status': 'Overdue'}})
     return units
